@@ -1,9 +1,9 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFrameworks>net45</TargetFrameworks>
+    <TargetFrameworks>net472</TargetFrameworks>
     <Copyright>M-Files Corporation 2020 onwards</Copyright>
-    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <Version>1.1.9</Version>
+    <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
+    <Version>0.1.0.0-notImportant</Version>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <Company>M-Files Corporation</Company>
     <Authors>M-Files Corporation</Authors>
@@ -14,9 +14,30 @@
     <PackageIcon>logo.png</PackageIcon>
     <PackageIconUrl />
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
+    <Configurations>Debug;Release;DebugNoDeployment</Configurations>
+    <PackageReadmeFile>nuget-readme.md</PackageReadmeFile>
   </PropertyGroup>
   <ItemGroup>
-    <Folder Include="Properties\" />
+    <Compile Remove="TaskQueueBackgroundOperations\ExtensionMethods\**" />
+    <EmbeddedResource Remove="TaskQueueBackgroundOperations\ExtensionMethods\**" />
+    <None Remove="TaskQueueBackgroundOperations\ExtensionMethods\**" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Remove="Resources\Completed.png" />
+    <None Remove="Resources\DefaultLogDownloadDashboard.html" />
+    <None Remove="Resources\Failed.png" />
+    <None Remove="Resources\Images\canceled.png" />
+    <None Remove="Resources\Images\download.png" />
+    <None Remove="Resources\Images\enabled.png" />
+    <None Remove="Resources\Images\error.png" />
+    <None Remove="Resources\Images\notenabled.png" />
+    <None Remove="Resources\Images\viewlogs.png" />
+    <None Remove="Resources\Images\warning.png" />
+    <None Remove="Resources\Running.png" />
+    <None Remove="Resources\Waiting.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\Images\viewlogs.png" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\lib\Resources\logo.png">
@@ -25,16 +46,185 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="MFiles.VAF" Version="2.2.0.10" />
-    <PackageReference Include="MFilesAPI.Extensions" Version="1.0.2" />
+    <PackageReference Include="MFiles.VAF" Version="24.10.720.2" />
+    <PackageReference Include="MFiles.VAF.Configuration.Logging.NLog" Version="23.12.3" />
+    <PackageReference Include="MFilesAPI.Extensions" Version="24.4.3" />
   </ItemGroup>
   <ItemGroup>
     <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleTo">
       <_Parameter1>$(MSBuildProjectName).Tests</_Parameter1>
     </AssemblyAttribute>
+    <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleTo">
+      <_Parameter1>DynamicProxyGenAssembly2</_Parameter1>
+    </AssemblyAttribute>
   </ItemGroup>
-  <Target Name="PostBuild" AfterTargets="Pack" Condition=" '$(Configuration)' == 'Release'">
-    <RemoveDir Directories="..\current" />
-    <Copy SourceFiles="$(OutputPath)$(PackageId).$(PackageVersion).nupkg" DestinationFolder="..\current" />
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\DefaultLogDownloadDashboard.html" />
+    <EmbeddedResource Include="Resources\DisplayLatestLogEntries.html" />
+    <EmbeddedResource Include="Resources\Images\canceled.png" />
+    <EmbeddedResource Include="Resources\Images\Completed.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Resources\Images\Download.png" />
+    <EmbeddedResource Include="Resources\Images\enabled.png" />
+    <EmbeddedResource Include="Resources\Images\error.png" />
+    <EmbeddedResource Include="Resources\Images\Failed.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Resources\Images\notenabled.png" />
+    <EmbeddedResource Include="Resources\Images\Running.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Resources\Images\Waiting.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Resources\Images\warning.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Update="Resources\AsynchronousOperations.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>AsynchronousOperations.resx</DependentUpon>
+    </Compile>
+    <Compile Update="Resources\Configuration.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Configuration.resx</DependentUpon>
+    </Compile>
+    <Compile Update="Resources\Dashboard.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Dashboard.resx</DependentUpon>
+    </Compile>
+    <Compile Update="Resources\Exceptions\Configuration.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Configuration.resx</DependentUpon>
+    </Compile>
+    <Compile Update="Resources\Exceptions\Dashboard.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Dashboard.resx</DependentUpon>
+    </Compile>
+    <Compile Update="Resources\Exceptions\InternalOperations.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>InternalOperations.resx</DependentUpon>
+    </Compile>
+    <Compile Update="Resources\Exceptions\ObjVerExExtensionMethods.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>ObjVerExExtensionMethods.resx</DependentUpon>
+    </Compile>
+    <Compile Update="Resources\Exceptions\MFSearchBuilderExtensionMethods.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>MFSearchBuilderExtensionMethods.resx</DependentUpon>
+    </Compile>
+    <Compile Update="Resources\Exceptions\TaskQueueBackgroundOperations.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>TaskQueueBackgroundOperations.resx</DependentUpon>
+    </Compile>
+    <Compile Update="Resources\Exceptions\VaultInteraction.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>VaultInteraction.resx</DependentUpon>
+    </Compile>
+    <Compile Update="Resources\Licensing.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Licensing.resx</DependentUpon>
+    </Compile>
+    <Compile Update="Resources\Logging.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Logging.resx</DependentUpon>
+    </Compile>
+    <Compile Update="Resources\Schedule.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Schedule.resx</DependentUpon>
+    </Compile>
+    <Compile Update="Resources\Time.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Time.resx</DependentUpon>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Update="Resources\AsynchronousOperations.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>AsynchronousOperations.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+    <EmbeddedResource Update="Resources\Configuration.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Configuration.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+    <EmbeddedResource Update="Resources\Dashboard.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Dashboard.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+    <EmbeddedResource Update="Resources\Exceptions\Configuration.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Configuration.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+    <EmbeddedResource Update="Resources\Exceptions\Dashboard.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Dashboard.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+    <EmbeddedResource Update="Resources\Exceptions\InternalOperations.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>InternalOperations.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+    <EmbeddedResource Update="Resources\Exceptions\ObjVerExExtensionMethods.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>ObjVerExExtensionMethods.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+    <EmbeddedResource Update="Resources\Exceptions\MFSearchBuilderExtensionMethods.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>MFSearchBuilderExtensionMethods.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+    <EmbeddedResource Update="Resources\Exceptions\TaskQueueBackgroundOperations.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>TaskQueueBackgroundOperations.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+    <EmbeddedResource Update="Resources\Exceptions\VaultInteraction.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>VaultInteraction.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+    <EmbeddedResource Update="Resources\Licensing.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Licensing.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+    <EmbeddedResource Update="Resources\Logging.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Logging.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+    <EmbeddedResource Update="Resources\Schedule.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Schedule.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+    <EmbeddedResource Update="Resources\Time.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Time.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="nuget-readme.md" Pack="True" PackagePath="\" />
+  </ItemGroup>
+  <Target Name="CleanNugetPackages" BeforeTargets="Build">
+    <ItemGroup>
+      <FilesToDelete Include="$(OutputPath)*.nupkg" />
+    </ItemGroup>
+    <Delete Files="@(FilesToDelete)" />
+  </Target>
+<Target Name="PreparePackageReleaseNotesFromFile" BeforeTargets="GenerateNuspec">
+  <ReadLinesFromFile File="../release-notes.txt">
+    <Output TaskParameter="Lines" ItemName="ReleaseNoteLines" />
+  </ReadLinesFromFile>
+  <PropertyGroup>
+    <PackageReleaseNotes>@(ReleaseNoteLines, '%0a')</PackageReleaseNotes>
+  </PropertyGroup>
 </Target>
 </Project>

@@ -1,9 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
 using MFiles.VAF.Common;
+using MFiles.VAF.Extensions.ExtensionMethods;
 using MFilesAPI;
 
 namespace MFiles.VAF.Extensions
@@ -43,7 +40,7 @@ namespace MFiles.VAF.Extensions
 			if (null == searchBuilder)
 				throw new ArgumentNullException(nameof(searchBuilder));
 			if (0 > propertyDef)
-				throw new ArgumentOutOfRangeException(nameof(propertyDef), "Property Ids must be greater than -1; ensure that your property alias was resolved.");
+				throw new ArgumentOutOfRangeException(nameof(propertyDef), Resources.Exceptions.VaultInteraction.PropertyDefinition_NotResolved);
 
 			// What is the type of this property?
 			var dataType = searchBuilder.Vault.PropertyDefOperations.GetPropertyDef(propertyDef).DataType;
@@ -64,11 +61,33 @@ namespace MFiles.VAF.Extensions
 			// If it is not valid then throw.
 			if (dataType != MFDataType.MFDatatypeDate
 				&& dataType != MFDataType.MFDatatypeTimestamp)
-				throw new ArgumentException($"Property {propertyDef} is not a date or timestamp property.", nameof(propertyDef));
+				throw new ArgumentException
+				(
+					String.Format
+					(
+						Resources.Exceptions.VaultInteraction.PropertyDefinition_NotOfExpectedType,
+						propertyDef,
+						string.Join(", ", new[] { MFDataType.MFDatatypeDate, MFDataType.MFDatatypeTimestamp })
+					),
+					nameof(propertyDef)
+				);
 
-			//// If it's a date and the value has a time component then strip it.
+			// If it's a date and the value has a time component then strip it.
 			if (dataType == MFDataType.MFDatatypeDate)
 				value = value?.Date;
+
+			// If it's a timestamp then ensure we are searching by local time.
+			if(
+				dataType == MFDataType.MFDatatypeTimestamp
+				&& value.HasValue
+			)
+			{
+				value = searchBuilder?.
+					Vault?
+					.SessionInfo?
+					.TimeZoneInfo?
+					.EnsureLocalTime(value.Value);
+			}
 
 			// Add the search condition.
 			return searchBuilder.AddPropertyValueSearchCondition
@@ -110,7 +129,7 @@ namespace MFiles.VAF.Extensions
 			if (null == searchBuilder)
 				throw new ArgumentNullException(nameof(searchBuilder));
 			if (0 > propertyDef)
-				throw new ArgumentOutOfRangeException(nameof(propertyDef), "Property Ids must be greater than -1; ensure that your property alias was resolved.");
+				throw new ArgumentOutOfRangeException(nameof(propertyDef), Resources.Exceptions.VaultInteraction.PropertyDefinition_NotResolved);
 
 			// What is the type of this property?
 			var dataType = searchBuilder.Vault.PropertyDefOperations.GetPropertyDef(propertyDef).DataType;
@@ -129,7 +148,16 @@ namespace MFiles.VAF.Extensions
 					break;
 
 				default:
-					throw new ArgumentException($"Property {propertyDef} is not a date or timestamp property.", nameof(propertyDef));
+					throw new ArgumentException
+					(
+						String.Format
+						(
+							Resources.Exceptions.VaultInteraction.PropertyDefinition_NotOfExpectedType,
+							propertyDef,
+							string.Join(", ", new[] { MFDataType.MFDatatypeDate, MFDataType.MFDatatypeTimestamp })
+						),
+						nameof(propertyDef)
+					);
 			}
 
 			// Use the property method.

@@ -1,0 +1,65 @@
+name: Build and publish
+
+on:
+  push:
+    branches: [ release ]
+    
+jobs:
+  build:
+    timeout-minutes: 10
+    runs-on: 'windows-2022'
+    
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        fetch-depth: 0
+
+    - name: Get version number
+      shell: pwsh
+      run: |
+        $versionNumber = Get-Date -Format "yy.M.${{ github.run_number }}"
+        echo "versionNumber=$versionNumber" | Out-File -FilePath $Env:GITHUB_ENV -Encoding utf-8 -Append
+
+    - name: Write release notes
+      shell: pwsh
+      run: |
+        $lastTag = git describe --tags --abbrev=0
+        $cmd = "git log --pretty=""format:%nhttps://github.com/M-Files/VAF.Extensions.Community/commit/%H%n%B"" --max-count=50 --date-order --no-merges $lastTag..@"
+        $changes = cmd /c $cmd
+        Add-Content -Path "release-notes.txt" -Value "Changes included in ${{ env.versionNumber }}"
+        Add-Content -Path "release-notes.txt" -Value $changes
+
+    - name: Setup MSBuild path
+      uses: microsoft/setup-msbuild@v1.1
+      with:
+        vs-version: '[17.0,)'
+
+    - name: Setup dot net
+      uses: actions/setup-dotnet@v2
+      with:
+        dotnet-version: 6.0.x
+      
+    - name: Create nuget package
+      run: dotnet pack ./MFiles.VAF.Extensions/MFiles.VAF.Extensions.csproj --configuration Release -p:Version=${{ env.versionNumber }}
+
+# Tests cannot be run as MFAPI is not installed.
+#    - name: Test
+#      run: dotnet test --no-restore --verbosity normal
+
+    - name: Push with dotnet
+      run: dotnet nuget push ./MFiles.VAF.Extensions/bin/Release/MFiles.VAF.Extensions.${{ env.versionNumber }}.nupkg --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json --skip-duplicate
+      
+    - name: Create release
+      id: createRelease
+      uses: ncipollo/release-action@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        artifactErrorsFailBuild: true
+        artifacts: "./MFiles.VAF.Extensions/bin/Release/MFiles.VAF.Extensions.${{ env.versionNumber }}.nupkg"
+        name: ${{ env.versionNumber }}
+        tag: ${{ env.versionNumber }}
+        draft: false
+        makeLatest: true
+        omitBody: true
+        prerelease: false

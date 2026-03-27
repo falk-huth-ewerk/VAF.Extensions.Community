@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using MFiles.VAF.Common;
+using MFiles.VAF.Extensions.ExtensionMethods;
 using MFilesAPI;
 
 namespace MFiles.VAF.Extensions
@@ -29,32 +30,54 @@ namespace MFiles.VAF.Extensions
 			if (null == objVerEx)
 				throw new ArgumentNullException(nameof(objVerEx));
 			if (0 > propertyDef)
-				throw new ArgumentOutOfRangeException(nameof(propertyDef), "Property Ids must be greater than -1; ensure that your property alias was resolved.");
+				throw new ArgumentOutOfRangeException(nameof(propertyDef), Resources.Exceptions.VaultInteraction.PropertyDefinition_NotResolved);
 
 			// Does this property exist in the collection?
 			var propertyValue = objVerEx.Properties.SearchForPropertyEx(propertyDef, true);
 			if(null == propertyValue || propertyValue.TypedValue.IsNULL() || propertyValue.TypedValue.IsUninitialized())
 				return default(T);
 
+			// What is the type of this property?
+			var dataType = objVerEx.Vault.PropertyDefOperations.GetPropertyDef(propertyDef).DataType;
+
 			// Should we validate the type?
 			if (null != validDataTypes && validDataTypes.Length > 0)
 			{
-				// What is the type of this property?
-				var dataType = objVerEx.Vault.PropertyDefOperations.GetPropertyDef(propertyDef).DataType;
 
 				// Is it in the collection of valid types.
 				if (false == validDataTypes.Contains(dataType))
 				{
 					throw new ArgumentException
 					(
-						$"The property definition with ID {propertyDef} was of type {dataType}, but only {string.Join(", ", validDataTypes)} are allowed.",
+						String.Format
+						(
+							Resources.Exceptions.ObjVerExExtensionMethods.GetPropertyAs_PropertyNotOfExpectedType,
+							propertyDef,
+							dataType,
+							string.Join(", ", validDataTypes)
+						),
 						nameof(propertyDef)
 					);
 				}
 			}
 
-			// Attempt to return the data as correctly typed value.
-			return (T)propertyValue.TypedValue.Value;
+
+			// If it's a timestamp then ensure that the DateTimeKind is set properly.
+			if (dataType == MFDataType.MFDatatypeTimestamp
+				&& typeof(T) == typeof(DateTime?))
+			{
+				{
+					return (T)(object)propertyValue
+						.TypedValue
+						.GetValueAsTimestamp()
+						.ToPreciseDateTime(DateTimeKind.Utc);
+				}
+			}
+			else
+			{
+				// Attempt to return the data as correctly typed value.
+				return (T)propertyValue.TypedValue.Value;
+			}
 		}
 
 		#endregion
